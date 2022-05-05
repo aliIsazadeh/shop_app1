@@ -4,12 +4,14 @@ import 'package:shop_app1/providers/cart.dart';
 import 'package:shop_app1/providers/orders.dart';
 import 'package:shop_app1/providers/products.dart';
 import 'package:shop_app1/screens/cart_screen.dart';
+import 'package:shop_app1/screens/login_screen.dart';
 import 'package:shop_app1/screens/order_screen.dart';
 import 'package:shop_app1/screens/product_adding_screen.dart';
 import 'package:shop_app1/screens/product_details_screen.dart';
 import 'package:shop_app1/screens/products_overview_screen.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:shop_app1/screens/user_product_screen.dart';
+import 'package:shop_app1/service/services.dart';
 
 void main() {
   runApp( MyApp());
@@ -21,23 +23,35 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => Products()),
-        ChangeNotifierProvider(create: (context) => Cart()),
-        ChangeNotifierProvider(create: (context) => Orders()),
-      ],
-      child: MaterialApp(
-        title: 'Flutter Demo',
-        theme: FlexThemeData.light(scheme: FlexScheme.blumineBlue),
-        home: const ProductsOverViewScreen(),
-        routes: {
-          ProductDetailsScreen.routeName : (context) =>const ProductDetailsScreen(),
-          CartScreen.routeName : (context) =>const CartScreen(),
-          OrderScreen.routeName : (context) =>const OrderScreen(),
-          UserProductScreen.routeName : (context) =>const UserProductScreen(),
-          ProductAddingScreen.routeName : (context) => const ProductAddingScreen(),
-      },
+    return Services(
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => Products()),
+          ChangeNotifierProvider(create: (context) => Cart()),
+          ChangeNotifierProvider(create: (context) => Orders()),
+        ],
+        child: MaterialApp(
+          title: 'Flutter Demo',
+          theme: FlexThemeData.light(scheme: FlexScheme.blumineBlue),
+          home: Builder(
+            builder: (context) {
+              return FutureBuilder<bool>(
+                future: Services.of(context).authService.recoverSession(),
+                builder: (context,snapshot){
+                  final sessionRecovered = snapshot.data ?? false;
+                  return sessionRecovered ? const ProductsOverViewScreen() : const LoginScreen();
+                },
+              );
+            },
+          ),
+          routes: {
+            ProductDetailsScreen.routeName : (context) =>const ProductDetailsScreen(),
+            CartScreen.routeName : (context) =>const CartScreen(),
+            OrderScreen.routeName : (context) =>const OrderScreen(),
+            UserProductScreen.routeName : (context) =>const UserProductScreen(),
+            ProductAddingScreen.routeName : (context) => const ProductAddingScreen(),
+        },
+        ),
       ),
     );
   }
